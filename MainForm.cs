@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using kraus_semestalka.Components;
 using kraus_semestalka.Data;
@@ -19,8 +20,7 @@ namespace kraus_semestalka
         private Button btnSettings;
         private RouteVisualizerPanel panelVisualizer;
         private DriveDataDetailView detailView;
-        private Panel panelMotorcycle;
-        private Label labelMoto;
+        private MotorcycleView motorcycleView;
         private DriveData? currentHoveredPoint = null;
 
         public MainForm()
@@ -32,14 +32,14 @@ namespace kraus_semestalka
             StartPosition = FormStartPosition.CenterScreen;
 
             InitLayout();
-
-            // Aplikuj uživatelská nastavení až po vytvoření všech ovládacích prvků
-            ApplySettings();
-
             InitMockData();
+
+            // Až teď, kdy už existuje panelVisualizer, aplikujeme nastavení:
+            ApplySettings();
         }
 
         private void InitLayout()
+
         {
             // ComboBox pro výběr záznamů
             comboRecordings = new ComboBox
@@ -51,16 +51,16 @@ namespace kraus_semestalka
             };
             comboRecordings.SelectedIndexChanged += ComboRecordings_SelectedIndexChanged;
 
-            // SplitContainer pro levý a pravý panel
+            // Hlavní split
             splitLeftRight = new SplitContainer
             {
                 Dock = DockStyle.Fill,
                 Orientation = Orientation.Vertical,
-                SplitterDistance = 300
+                SplitterDistance = 30
             };
             Controls.Add(splitLeftRight);
 
-            // Vnitřní rozdělení u pravého panelu
+            // Vnitřní split
             splitCenterRight = new SplitContainer
             {
                 Dock = DockStyle.Fill,
@@ -76,7 +76,7 @@ namespace kraus_semestalka
                 Font = new Font("Consolas", 10)
             };
 
-            // Skupina pro volbu režimu zobrazení
+            // Režim vykreslení
             groupModes = new GroupBox
             {
                 Text = "Režim vykreslení",
@@ -105,7 +105,7 @@ namespace kraus_semestalka
             groupModes.Controls.Add(radioSpeed);
             groupModes.Controls.Add(radioTurns);
 
-            // Tlačítko pro otevření dialogu nastavení
+            // Tlačítko Nastavení
             btnSettings = new Button
             {
                 Text = "Nastavení",
@@ -120,40 +120,27 @@ namespace kraus_semestalka
                     ApplySettings();
             };
 
-            // Přidání ovládacích prvků do levého panelu
             splitLeftRight.Panel1.Controls.Add(listRecordings);
             splitLeftRight.Panel1.Controls.Add(comboRecordings);
             splitLeftRight.Panel1.Controls.Add(groupModes);
             splitLeftRight.Panel1.Controls.Add(btnSettings);
 
-            // Detailní pohled na data
+            // Detail view
             detailView = new DriveDataDetailView
             {
                 Dock = DockStyle.Top
             };
             splitCenterRight.Panel2.Controls.Add(detailView);
 
-            // Panel pro zobrazení motocyklu
-            panelMotorcycle = new Panel
+            // MotorcycleView
+            motorcycleView = new MotorcycleView
             {
                 Dock = DockStyle.Fill,
-                BackColor = Color.LightGray,
-                BorderStyle = BorderStyle.FixedSingle
+                BikeImage = LoadBikeImage()
             };
-            panelMotorcycle.Paint += PanelMotorcycle_Paint;
+            splitCenterRight.Panel2.Controls.Add(motorcycleView);
 
-            labelMoto = new Label
-            {
-                Text = "Motocykl",
-                Dock = DockStyle.Top,
-                Height = 30,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold)
-            };
-            panelMotorcycle.Controls.Add(labelMoto);
-            splitCenterRight.Panel2.Controls.Add(panelMotorcycle);
-
-            // Panel pro vykreslení trasy
+            // RouteVisualizerPanel
             panelVisualizer = new RouteVisualizerPanel
             {
                 Dock = DockStyle.Fill,
@@ -163,6 +150,19 @@ namespace kraus_semestalka
             panelVisualizer.PointSelected += OnPointSelected;
             splitCenterRight.Panel1.Controls.Add(panelVisualizer);
         }
+
+        private Image LoadBikeImage()
+        {
+            var file = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "Imagine",
+                "bike.png"
+            );
+            if (!File.Exists(file))
+                throw new FileNotFoundException($"Soubor s obrázkem motorky nenalezen: {file}");
+            return Image.FromFile(file);
+        }
+
 
         private void InitMockData()
         {
@@ -205,32 +205,15 @@ namespace kraus_semestalka
         {
             detailView.UpdateWith(point);
             currentHoveredPoint = point;
-            panelMotorcycle.Invalidate();
-        }
-
-        private void PanelMotorcycle_Paint(object sender, PaintEventArgs e)
-        {
-            var g = e.Graphics;
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            g.Clear(Color.LightGray);
-
-            if (currentHoveredPoint == null) return;
-
-            float w = 40, h = 20;
-            float cx = panelMotorcycle.Width / 2f;
-            float cy = panelMotorcycle.Height / 2f;
-
-            g.TranslateTransform(cx, cy);
-            g.RotateTransform((float)currentHoveredPoint.Roll);
-            g.FillRectangle(Brushes.Black, -w / 2, -h / 2, w, h);
-            g.ResetTransform();
+            motorcycleView.Roll = (float)point.Roll;
         }
 
         /// <summary>
-        /// Aplikuje uživatelská nastavení z Properties.Settings do vizualizačního panelu.
+        /// Aplikuje uživatelská nastavení na vizualizační panel.
         /// </summary>
         private void ApplySettings()
         {
+            // panelVisualizer už existuje, protože InitLayout() proběhlo nad něj
             var s = Settings.Default;
             panelVisualizer.ColorCurveLeft = s.ColorCurveLeft;
             panelVisualizer.ColorCurveRight = s.ColorCurveRight;

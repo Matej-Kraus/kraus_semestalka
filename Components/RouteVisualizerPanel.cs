@@ -11,10 +11,10 @@ namespace kraus_semestalka.Components
     {
         public event Action<DriveData>? PointSelected;
 
-        private readonly ToolTip hoverTip = new ToolTip();
-        private List<PointF> transformedPoints = new();
-        private List<DriveData> transformedData = new();
-        private DriveData? lastSelectedPoint;
+        private  ToolTip hoverTip = new();
+        private  List<PointF> transformedPoints = [];
+        private  List<DriveData> transformedData = [];
+        private  DriveData? lastSelectedPoint;
 
         public List<DriveData> DriveDataPoints { get; set; } = new();
 
@@ -36,7 +36,7 @@ namespace kraus_semestalka.Components
         // barvy pro zatáčky
         public Color ColorCurveLeft { get; set; } = Color.Blue;
         public Color ColorCurveRight { get; set; } = Color.Red;
-        public float RollThreshold { get; set; } = 8f;
+        public float RollThreshold { get; set; } = 5f;
 
         // barvy pro akceleraci
         public Color ColorAccelPositive { get; set; } = Color.Green;

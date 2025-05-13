@@ -7,9 +7,9 @@ namespace kraus_semestalka.Components
 {
     public class DriveDataDetailView : Panel
     {
-        private Label labelSpeed;
-        private Label labelRoll;
-        private Label labelAccel;
+        private readonly Label labelSpeed;
+        private readonly Label labelRoll;
+        private readonly Label labelAccel;
 
         public DriveDataDetailView()
         {
