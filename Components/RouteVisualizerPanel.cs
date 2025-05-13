@@ -187,6 +187,8 @@ namespace kraus_semestalka.Components
                 float y = ((float)d.LatRec.GetValueOrDefault() - minY) * scale + offsetY;
                 transformedPoints.Add(new PointF(x, Height - y));
                 transformedData.Add(d);
+                transformedData.Add(d);
+                //hovno
             }
         }
     }
