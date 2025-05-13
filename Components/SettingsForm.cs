@@ -8,8 +8,10 @@ namespace kraus_semestalka.Components
     public class SettingsForm : Form
     {
         private CheckBox chkAutoRedraw;
-        private Button btnCurveLeftColor, btnCurveRightColor,
-                       btnAccelPosColor, btnAccelNegColor;
+        private Button btnCurveLeftColor, btnCurveRightColor;
+        private Button btnAccelPosColor, btnAccelNegColor;
+        private NumericUpDown numAccelTol;
+        private Label lblAccelTol;
         private Button btnResetDefaults, btnOK, btnCancel;
 
         public SettingsForm()
@@ -19,7 +21,8 @@ namespace kraus_semestalka.Components
             StartPosition = FormStartPosition.CenterParent;
             MaximizeBox = false;
             MinimizeBox = false;
-            Width = 400; Height = 300;
+            Width = 440;
+            Height = 360;
 
             InitializeComponents();
             LoadSettings();
@@ -75,11 +78,30 @@ namespace kraus_semestalka.Components
             btnAccelNegColor.Click += (s, e) =>
                 PickColor(btnAccelNegColor, Settings.Default.ColorAccelNegative);
 
+            lblAccelTol = new Label
+            {
+                Text = "Tolerance akcelerace:",
+                AutoSize = true,
+                Top = 220,
+                Left = 20
+            };
+
+            numAccelTol = new NumericUpDown
+            {
+                Minimum = 0,
+                Maximum = 5,
+                DecimalPlaces = 3,
+                Increment = 0.01M,
+                Top = 220,
+                Left = 150,
+                Width = 80
+            };
+
             btnResetDefaults = new Button
             {
                 Text = "Obnovit výchozí",
                 Width = 120,
-                Top = 220,
+                Top = 260,
                 Left = 20
             };
             btnResetDefaults.Click += (s, e) => {
@@ -92,25 +114,29 @@ namespace kraus_semestalka.Components
                 Text = "OK",
                 DialogResult = DialogResult.OK,
                 Width = 80,
-                Top = 220,
+                Top = 260,
                 Left = 260
             };
-            btnOK.Click += (s, e) => SaveSettings();
+            btnOK.Click += (s, e) => {
+                SaveSettings();
+                Close();
+            };
 
             btnCancel = new Button
             {
                 Text = "Storno",
                 DialogResult = DialogResult.Cancel,
                 Width = 80,
-                Top = 220,
+                Top = 260,
                 Left = 350
             };
 
             Controls.AddRange(new Control[]{
                 chkAutoRedraw,
                 btnCurveLeftColor, btnCurveRightColor,
-                btnAccelPosColor, btnAccelNegColor,
-                btnResetDefaults, btnOK, btnCancel
+                btnAccelPosColor,  btnAccelNegColor,
+                lblAccelTol,       numAccelTol,
+                btnResetDefaults,  btnOK, btnCancel
             });
         }
 
@@ -128,6 +154,7 @@ namespace kraus_semestalka.Components
             btnCurveRightColor.BackColor = Settings.Default.ColorCurveRight;
             btnAccelPosColor.BackColor = Settings.Default.ColorAccelPositive;
             btnAccelNegColor.BackColor = Settings.Default.ColorAccelNegative;
+            numAccelTol.Value = (decimal)Settings.Default.AccelTolerance;
         }
 
         private void SaveSettings()
@@ -137,7 +164,7 @@ namespace kraus_semestalka.Components
             Settings.Default.ColorCurveRight = btnCurveRightColor.BackColor;
             Settings.Default.ColorAccelPositive = btnAccelPosColor.BackColor;
             Settings.Default.ColorAccelNegative = btnAccelNegColor.BackColor;
-            Settings.Default.AccelTolerance = AccelTolerance; // pokud přidáte slider
+            Settings.Default.AccelTolerance = (float)numAccelTol.Value;
             Settings.Default.Save();
         }
     }

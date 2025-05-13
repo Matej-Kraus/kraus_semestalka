@@ -1,11 +1,11 @@
-﻿// MainForm.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using kraus_semestalka.Components;
 using kraus_semestalka.Data;
 using kraus_semestalka.Data.Models;
-using kraus_semestalka.Components;
+using kraus_semestalka.Properties;
 
 namespace kraus_semestalka
 {
@@ -27,19 +27,21 @@ namespace kraus_semestalka
         {
             InitializeComponent();
 
-            // Načti a aplikuj uložená nastavení
-            ApplySettings();
-
             Text = "Vizualizace jízdy";
             MinimumSize = new Size(1280, 720);
             StartPosition = FormStartPosition.CenterScreen;
 
             InitLayout();
+
+            // Aplikuj uživatelská nastavení až po vytvoření všech ovládacích prvků
+            ApplySettings();
+
             InitMockData();
         }
 
-        private new void InitLayout()
+        private void InitLayout()
         {
+            // ComboBox pro výběr záznamů
             comboRecordings = new ComboBox
             {
                 Dock = DockStyle.Top,
@@ -49,14 +51,16 @@ namespace kraus_semestalka
             };
             comboRecordings.SelectedIndexChanged += ComboRecordings_SelectedIndexChanged;
 
+            // SplitContainer pro levý a pravý panel
             splitLeftRight = new SplitContainer
             {
                 Dock = DockStyle.Fill,
                 Orientation = Orientation.Vertical,
-                SplitterDistance = 30
+                SplitterDistance = 300
             };
             Controls.Add(splitLeftRight);
 
+            // Vnitřní rozdělení u pravého panelu
             splitCenterRight = new SplitContainer
             {
                 Dock = DockStyle.Fill,
@@ -65,12 +69,14 @@ namespace kraus_semestalka
             };
             splitLeftRight.Panel2.Controls.Add(splitCenterRight);
 
+            // ListBox se záznamy
             listRecordings = new ListBox
             {
                 Dock = DockStyle.Fill,
                 Font = new Font("Consolas", 10)
             };
 
+            // Skupina pro volbu režimu zobrazení
             groupModes = new GroupBox
             {
                 Text = "Režim vykreslení",
@@ -90,12 +96,16 @@ namespace kraus_semestalka
 
             radioSpeed = new RadioButton
             {
-                Text = "Rychlost",
+                Text = "Rychlost / Akcelerace",
                 Dock = DockStyle.Top,
                 Font = new Font("Segoe UI", 9)
             };
             radioSpeed.CheckedChanged += (s, e) => SwitchMode();
 
+            groupModes.Controls.Add(radioSpeed);
+            groupModes.Controls.Add(radioTurns);
+
+            // Tlačítko pro otevření dialogu nastavení
             btnSettings = new Button
             {
                 Text = "Nastavení",
@@ -103,18 +113,27 @@ namespace kraus_semestalka
                 Height = 30,
                 Font = new Font("Segoe UI", 9)
             };
+            btnSettings.Click += (s, e) =>
+            {
+                using var dlg = new SettingsForm();
+                if (dlg.ShowDialog(this) == DialogResult.OK)
+                    ApplySettings();
+            };
 
-            groupModes.Controls.Add(radioSpeed);
-            groupModes.Controls.Add(radioTurns);
-
+            // Přidání ovládacích prvků do levého panelu
             splitLeftRight.Panel1.Controls.Add(listRecordings);
             splitLeftRight.Panel1.Controls.Add(comboRecordings);
             splitLeftRight.Panel1.Controls.Add(groupModes);
             splitLeftRight.Panel1.Controls.Add(btnSettings);
 
-            detailView = new DriveDataDetailView();
+            // Detailní pohled na data
+            detailView = new DriveDataDetailView
+            {
+                Dock = DockStyle.Top
+            };
             splitCenterRight.Panel2.Controls.Add(detailView);
 
+            // Panel pro zobrazení motocyklu
             panelMotorcycle = new Panel
             {
                 Dock = DockStyle.Fill,
@@ -134,6 +153,7 @@ namespace kraus_semestalka
             panelMotorcycle.Controls.Add(labelMoto);
             splitCenterRight.Panel2.Controls.Add(panelMotorcycle);
 
+            // Panel pro vykreslení trasy
             panelVisualizer = new RouteVisualizerPanel
             {
                 Dock = DockStyle.Fill,
@@ -142,20 +162,50 @@ namespace kraus_semestalka
             };
             panelVisualizer.PointSelected += OnPointSelected;
             splitCenterRight.Panel1.Controls.Add(panelVisualizer);
+        }
 
-
-            btnSettings.Click += (s, e) =>
+        private void InitMockData()
+        {
+            comboRecordings.Items.Clear();
+            foreach (var r in DataService.GetRecordings())
             {
-                using var dlg = new SettingsForm();
-                if (dlg.ShowDialog(this) == DialogResult.OK)
-                    ApplySettings();
-            };
+                string label = !string.IsNullOrEmpty(r.UIID)
+                    ? r.UIID
+                    : $"ID {r.Id}";
+                comboRecordings.Items.Add(new ComboBoxItem
+                {
+                    Text = $"{label} – {r.StartDateTime:dd.MM.yyyy} – {r.SensorsDeviceName}",
+                    Value = r.Id
+                });
+            }
+            if (comboRecordings.Items.Count > 0)
+                comboRecordings.SelectedIndex = 0;
         }
 
         private void SwitchMode()
         {
             panelVisualizer.ShowTurnsMode = radioTurns.Checked;
-            panelVisualizer.Invalidate();
+            if (Settings.Default.AutoRedraw)
+                panelVisualizer.Invalidate();
+        }
+
+        private void ComboRecordings_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboRecordings.SelectedItem is ComboBoxItem sel)
+            {
+                var data = DataService.GetDriveDataByRecordingId(sel.Value);
+                panelVisualizer.DriveDataPoints = data;
+                panelVisualizer.ShowTurnsMode = radioTurns.Checked;
+                if (Settings.Default.AutoRedraw)
+                    panelVisualizer.Invalidate();
+            }
+        }
+
+        private void OnPointSelected(DriveData point)
+        {
+            detailView.UpdateWith(point);
+            currentHoveredPoint = point;
+            panelMotorcycle.Invalidate();
         }
 
         private void PanelMotorcycle_Paint(object sender, PaintEventArgs e)
@@ -176,43 +226,9 @@ namespace kraus_semestalka
             g.ResetTransform();
         }
 
-        private void OnPointSelected(DriveData point)
-        {
-            detailView.UpdateWith(point);
-            currentHoveredPoint = point;
-            panelMotorcycle.Invalidate();
-        }
-
-        private void ComboRecordings_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (comboRecordings.SelectedItem is ComboBoxItem sel)
-            {
-                var data = DataService.GetDriveDataByRecordingId(sel.Value);
-                panelVisualizer.DriveDataPoints = data;
-                panelVisualizer.ShowTurnsMode = radioTurns.Checked;
-
-                if (Settings.Default.AutoRedraw)
-                    panelVisualizer.Invalidate();
-            }
-        }
-
-        private void InitMockData()
-        {
-            comboRecordings.Items.Clear();
-            foreach (var r in DataService.GetRecordings())
-            {
-                string label = !string.IsNullOrEmpty(r.UIID)
-                    ? r.UIID
-                    : $"ID {r.Id}";
-                comboRecordings.Items.Add(new ComboBoxItem
-                {
-                    Text = $"{label} – {r.StartDateTime:dd.MM.yyyy} – {r.SensorsDeviceName}",
-                    Value = r.Id
-                });
-            }
-            if (comboRecordings.Items.Count > 0)
-                comboRecordings.SelectedIndex = 0;
-        }
+        /// <summary>
+        /// Aplikuje uživatelská nastavení z Properties.Settings do vizualizačního panelu.
+        /// </summary>
         private void ApplySettings()
         {
             var s = Settings.Default;
@@ -223,14 +239,11 @@ namespace kraus_semestalka
             panelVisualizer.AccelTolerance = s.AccelTolerance;
             panelVisualizer.Invalidate();
         }
-
-
     }
-
 
     public class ComboBoxItem
     {
-        public string Text { get; set; }
+        public string Text { get; set; } = "";
         public int Value { get; set; }
         public override string ToString() => Text;
     }
