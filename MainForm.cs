@@ -21,7 +21,7 @@ namespace kraus_semestalka
         private RouteVisualizerPanel panelVisualizer;
         private DriveDataDetailView detailView;
         private MotorcycleView motorcycleView;
-        private DriveData? currentHoveredPoint = null;
+        private DriveData? currentHoveredPoint;
 
         public MainForm()
         {
@@ -33,15 +33,11 @@ namespace kraus_semestalka
 
             InitLayout();
             InitMockData();
-
-            // Až teď, kdy už existuje panelVisualizer, aplikujeme nastavení:
             ApplySettings();
         }
 
         private void InitLayout()
-
         {
-            // ComboBox pro výběr záznamů
             comboRecordings = new ComboBox
             {
                 Dock = DockStyle.Top,
@@ -51,7 +47,6 @@ namespace kraus_semestalka
             };
             comboRecordings.SelectedIndexChanged += ComboRecordings_SelectedIndexChanged;
 
-            // Hlavní split
             splitLeftRight = new SplitContainer
             {
                 Dock = DockStyle.Fill,
@@ -60,7 +55,6 @@ namespace kraus_semestalka
             };
             Controls.Add(splitLeftRight);
 
-            // Vnitřní split
             splitCenterRight = new SplitContainer
             {
                 Dock = DockStyle.Fill,
@@ -69,14 +63,12 @@ namespace kraus_semestalka
             };
             splitLeftRight.Panel2.Controls.Add(splitCenterRight);
 
-            // ListBox se záznamy
             listRecordings = new ListBox
             {
                 Dock = DockStyle.Fill,
                 Font = new Font("Consolas", 10)
             };
 
-            // Režim vykreslení
             groupModes = new GroupBox
             {
                 Text = "Režim vykreslení",
@@ -84,7 +76,6 @@ namespace kraus_semestalka
                 Height = 80,
                 Padding = new Padding(10)
             };
-
             radioTurns = new RadioButton
             {
                 Text = "Zatáčky",
@@ -92,20 +83,17 @@ namespace kraus_semestalka
                 Font = new Font("Segoe UI", 9),
                 Checked = true
             };
-            radioTurns.CheckedChanged += (s, e) => SwitchMode();
-
             radioSpeed = new RadioButton
             {
                 Text = "Rychlost / Akcelerace",
                 Dock = DockStyle.Top,
                 Font = new Font("Segoe UI", 9)
             };
+            radioTurns.CheckedChanged += (s, e) => SwitchMode();
             radioSpeed.CheckedChanged += (s, e) => SwitchMode();
-
             groupModes.Controls.Add(radioSpeed);
             groupModes.Controls.Add(radioTurns);
 
-            // Tlačítko Nastavení
             btnSettings = new Button
             {
                 Text = "Nastavení",
@@ -113,8 +101,7 @@ namespace kraus_semestalka
                 Height = 30,
                 Font = new Font("Segoe UI", 9)
             };
-            btnSettings.Click += (s, e) =>
-            {
+            btnSettings.Click += (s, e) => {
                 using var dlg = new SettingsForm();
                 if (dlg.ShowDialog(this) == DialogResult.OK)
                     ApplySettings();
@@ -125,14 +112,12 @@ namespace kraus_semestalka
             splitLeftRight.Panel1.Controls.Add(groupModes);
             splitLeftRight.Panel1.Controls.Add(btnSettings);
 
-            // Detail view
             detailView = new DriveDataDetailView
             {
                 Dock = DockStyle.Top
             };
             splitCenterRight.Panel2.Controls.Add(detailView);
 
-            // MotorcycleView
             motorcycleView = new MotorcycleView
             {
                 Dock = DockStyle.Fill,
@@ -140,7 +125,6 @@ namespace kraus_semestalka
             };
             splitCenterRight.Panel2.Controls.Add(motorcycleView);
 
-            // RouteVisualizerPanel
             panelVisualizer = new RouteVisualizerPanel
             {
                 Dock = DockStyle.Fill,
@@ -153,16 +137,11 @@ namespace kraus_semestalka
 
         private Image LoadBikeImage()
         {
-            var file = Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory,
-                "Imagine",
-                "bike.png"
-            );
+            var file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Imagine", "bike.png");
             if (!File.Exists(file))
-                throw new FileNotFoundException($"Soubor s obrázkem motorky nenalezen: {file}");
+                throw new FileNotFoundException($"Motorka nenalezena: {file}");
             return Image.FromFile(file);
         }
-
 
         private void InitMockData()
         {
@@ -170,8 +149,7 @@ namespace kraus_semestalka
             foreach (var r in DataService.GetRecordings())
             {
                 string label = !string.IsNullOrEmpty(r.UIID)
-                    ? r.UIID
-                    : $"ID {r.Id}";
+                    ? r.UIID : $"ID {r.Id}";
                 comboRecordings.Items.Add(new ComboBoxItem
                 {
                     Text = $"{label} – {r.StartDateTime:dd.MM.yyyy} – {r.SensorsDeviceName}",
@@ -201,19 +179,15 @@ namespace kraus_semestalka
             }
         }
 
-        private void OnPointSelected(DriveData point)
+        private void OnPointSelected(DriveData pt)
         {
-            detailView.UpdateWith(point);
-            currentHoveredPoint = point;
-            motorcycleView.Roll = (float)point.Roll;
+            detailView.UpdateWith(pt);
+            currentHoveredPoint = pt;
+            motorcycleView.Roll = (float)pt.Roll;
         }
 
-        /// <summary>
-        /// Aplikuje uživatelská nastavení na vizualizační panel.
-        /// </summary>
         private void ApplySettings()
         {
-            // panelVisualizer už existuje, protože InitLayout() proběhlo nad něj
             var s = Settings.Default;
             panelVisualizer.ColorCurveLeft = s.ColorCurveLeft;
             panelVisualizer.ColorCurveRight = s.ColorCurveRight;

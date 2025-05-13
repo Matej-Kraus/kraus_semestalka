@@ -7,12 +7,16 @@ namespace kraus_semestalka.Components
 {
     public class SettingsForm : Form
     {
-        private CheckBox chkAutoRedraw;
-        private Button btnCurveLeftColor, btnCurveRightColor;
-        private Button btnAccelPosColor, btnAccelNegColor;
-        private NumericUpDown numAccelTol;
-        private Label lblAccelTol;
-        private Button btnResetDefaults, btnOK, btnCancel;
+        private  CheckBox chkAutoRedraw = null!;
+        private  Button btnCurveLeftColor = null!;
+        private  Button btnCurveRightColor = null!;
+        private  Button btnAccelPosColor = null!;
+        private  Button btnAccelNegColor = null!;
+        private  NumericUpDown numAccelTol = null!;
+        private  Label lblAccelTol = null!;
+        private  Button btnResetDefaults = null!;
+        private  Button btnOK = null!;
+        private  Button btnCancel = null!;
 
         public SettingsForm()
         {
@@ -38,54 +42,19 @@ namespace kraus_semestalka.Components
                 Left = 20
             };
 
-            btnCurveLeftColor = new Button
-            {
-                Text = "Barva zatáček vlevo",
-                Width = 150,
-                Top = 60,
-                Left = 20
-            };
-            btnCurveLeftColor.Click += (s, e) =>
-                PickColor(btnCurveLeftColor, Settings.Default.ColorCurveLeft);
+            btnCurveLeftColor = new Button { Text = "Barva zatáček vlevo", Width = 150, Top = 60, Left = 20 };
+            btnCurveLeftColor.Click += (s, e) => PickColor(btnCurveLeftColor, Settings.Default.ColorCurveLeft);
 
-            btnCurveRightColor = new Button
-            {
-                Text = "Barva zatáček vpravo",
-                Width = 150,
-                Top = 100,
-                Left = 20
-            };
-            btnCurveRightColor.Click += (s, e) =>
-                PickColor(btnCurveRightColor, Settings.Default.ColorCurveRight);
+            btnCurveRightColor = new Button { Text = "Barva zatáček vpravo", Width = 150, Top = 100, Left = 20 };
+            btnCurveRightColor.Click += (s, e) => PickColor(btnCurveRightColor, Settings.Default.ColorCurveRight);
 
-            btnAccelPosColor = new Button
-            {
-                Text = "Barva akcelerace +",
-                Width = 150,
-                Top = 140,
-                Left = 20
-            };
-            btnAccelPosColor.Click += (s, e) =>
-                PickColor(btnAccelPosColor, Settings.Default.ColorAccelPositive);
+            btnAccelPosColor = new Button { Text = "Barva akcelerace +", Width = 150, Top = 140, Left = 20 };
+            btnAccelPosColor.Click += (s, e) => PickColor(btnAccelPosColor, Settings.Default.ColorAccelPositive);
 
-            btnAccelNegColor = new Button
-            {
-                Text = "Barva akcelerace -",
-                Width = 150,
-                Top = 180,
-                Left = 20
-            };
-            btnAccelNegColor.Click += (s, e) =>
-                PickColor(btnAccelNegColor, Settings.Default.ColorAccelNegative);
+            btnAccelNegColor = new Button { Text = "Barva akcelerace -", Width = 150, Top = 180, Left = 20 };
+            btnAccelNegColor.Click += (s, e) => PickColor(btnAccelNegColor, Settings.Default.ColorAccelNegative);
 
-            lblAccelTol = new Label
-            {
-                Text = "Tolerance akcelerace:",
-                AutoSize = true,
-                Top = 220,
-                Left = 20
-            };
-
+            lblAccelTol = new Label { Text = "Tolerance akcelerace:", AutoSize = true, Top = 220, Left = 20 };
             numAccelTol = new NumericUpDown
             {
                 Minimum = 0,
@@ -97,39 +66,13 @@ namespace kraus_semestalka.Components
                 Width = 80
             };
 
-            btnResetDefaults = new Button
-            {
-                Text = "Obnovit výchozí",
-                Width = 120,
-                Top = 260,
-                Left = 20
-            };
-            btnResetDefaults.Click += (s, e) => {
-                Settings.Default.Reset();
-                LoadSettings();
-            };
+            btnResetDefaults = new Button { Text = "Obnovit výchozí", Width = 120, Top = 260, Left = 20 };
+            btnResetDefaults.Click += (s, e) => { Settings.Default.Reset(); LoadSettings(); };
 
-            btnOK = new Button
-            {
-                Text = "OK",
-                DialogResult = DialogResult.OK,
-                Width = 80,
-                Top = 260,
-                Left = 260
-            };
-            btnOK.Click += (s, e) => {
-                SaveSettings();
-                Close();
-            };
+            btnOK = new Button { Text = "OK", DialogResult = DialogResult.OK, Width = 80, Top = 260, Left = 260 };
+            btnOK.Click += (s, e) => { SaveSettings(); Close(); };
 
-            btnCancel = new Button
-            {
-                Text = "Storno",
-                DialogResult = DialogResult.Cancel,
-                Width = 80,
-                Top = 260,
-                Left = 350
-            };
+            btnCancel = new Button { Text = "Storno", DialogResult = DialogResult.Cancel, Width = 80, Top = 260, Left = 350 };
 
             Controls.AddRange(new Control[]{
                 chkAutoRedraw,

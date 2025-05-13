@@ -13,43 +13,31 @@ namespace kraus_semestalka.Components
 
         public DriveDataDetailView()
         {
-            this.Dock = DockStyle.Top;
-            this.Height = 150;
-            this.Padding = new Padding(10);
+            Dock = DockStyle.Top;
+            Height = 100;
+            Padding = new Padding(10);
 
-            // Vytvoření tří popisků
             labelSpeed = CreateLabel("Rychlost:");
             labelRoll = CreateLabel("Náklon:");
-            labelAccel = CreateLabel("Zrychlení:");
+            labelAccel = CreateLabel("Akcelerace:");
 
-            // Přidání do panelu (poslední přidaný je nahoře)
-            this.Controls.Add(labelAccel);
-            this.Controls.Add(labelRoll);
-            this.Controls.Add(labelSpeed);
+            Controls.Add(labelAccel);
+            Controls.Add(labelRoll);
+            Controls.Add(labelSpeed);
         }
 
-        private Label CreateLabel(string text)
+        private Label CreateLabel(string text) => new()
         {
-            return new Label
-            {
-                Text = text,
-                Dock = DockStyle.Top,
-                Font = new Font("Segoe UI", 10)
-            };
-        }
+            Text = text,
+            Dock = DockStyle.Top,
+            Font = new Font("Segoe UI", 10)
+        };
 
-        public void UpdateWith(DriveData point)
+        public void UpdateWith(DriveData pt)
         {
-            // Ochrana proti chybě
-            if (labelSpeed == null || labelRoll == null || labelAccel == null)
-            {
-                MessageBox.Show("Chyba: Komponenta není správně inicializována.");
-                return;
-            }
-
-            labelSpeed.Text = $"Rychlost: {point.SpeedRec:0.0} m/s";
-            labelRoll.Text = $"Náklon: {point.Roll:0.0}°";
-            labelAccel.Text = $"Zrychlení: {point.Ax:0.00} m/s²";
+            labelSpeed.Text = $"Rychlost: {pt.SpeedRec:0.0} m/s";
+            labelRoll.Text = $"Náklon:   {pt.Roll:0.0}°";
+            labelAccel.Text = $"Akcelerace: {pt.Ax:0.00} m/s²";
         }
     }
 }
