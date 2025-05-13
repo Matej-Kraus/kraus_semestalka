@@ -38,9 +38,6 @@ namespace kraus_semestalka.Components
             };
         }
 
-        /// <summary>
-        /// Aktualizuje popisky podle dat z vybraného DriveData bodu.
-        /// </summary>
         public void UpdateWith(DriveData point)
         {
             // Ochrana proti chybě

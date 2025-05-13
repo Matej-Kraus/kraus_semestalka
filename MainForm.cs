@@ -26,6 +26,10 @@ namespace kraus_semestalka
         public MainForm()
         {
             InitializeComponent();
+
+            // Načti a aplikuj uložená nastavení
+            ApplySettings();
+
             Text = "Vizualizace jízdy";
             MinimumSize = new Size(1280, 720);
             StartPosition = FormStartPosition.CenterScreen;
@@ -138,6 +142,14 @@ namespace kraus_semestalka
             };
             panelVisualizer.PointSelected += OnPointSelected;
             splitCenterRight.Panel1.Controls.Add(panelVisualizer);
+
+
+            btnSettings.Click += (s, e) =>
+            {
+                using var dlg = new SettingsForm();
+                if (dlg.ShowDialog(this) == DialogResult.OK)
+                    ApplySettings();
+            };
         }
 
         private void SwitchMode()
@@ -178,7 +190,9 @@ namespace kraus_semestalka
                 var data = DataService.GetDriveDataByRecordingId(sel.Value);
                 panelVisualizer.DriveDataPoints = data;
                 panelVisualizer.ShowTurnsMode = radioTurns.Checked;
-                panelVisualizer.Invalidate();
+
+                if (Settings.Default.AutoRedraw)
+                    panelVisualizer.Invalidate();
             }
         }
 
@@ -199,7 +213,20 @@ namespace kraus_semestalka
             if (comboRecordings.Items.Count > 0)
                 comboRecordings.SelectedIndex = 0;
         }
+        private void ApplySettings()
+        {
+            var s = Settings.Default;
+            panelVisualizer.ColorCurveLeft = s.ColorCurveLeft;
+            panelVisualizer.ColorCurveRight = s.ColorCurveRight;
+            panelVisualizer.ColorAccelPositive = s.ColorAccelPositive;
+            panelVisualizer.ColorAccelNegative = s.ColorAccelNegative;
+            panelVisualizer.AccelTolerance = s.AccelTolerance;
+            panelVisualizer.Invalidate();
+        }
+
+
     }
+
 
     public class ComboBoxItem
     {
